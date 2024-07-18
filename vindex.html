@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Stock Simulator</title>
+  <style>
+    /* Main Styles */
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f4;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+
+    /* Header Styles */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .balance {
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    /* Table Styles */
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-bottom: 20px;
+    }
+
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+
+    th {
+      background-color: #f2f2f2;
+      font-weight: bold;
+    }
+
+    /* Stock Row Styles */
+    .stock-row {
+      position: relative;
+      transition: background-color 0.3s ease-in-out;
+    }
+
+    .stock-row:hover {
+      background-color: #eaf6ff;
+    }
+
+    .stock-row input[type="number"] {
+      width: 70px;
+      padding: 4px;
+    }
+
+    .stock-row button {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 14px;
+      margin: 2px;
+      cursor: pointer;
+      transition: background-color 0.3s ease-in-out;
+    }
+
+    .stock-row button:hover {
+      background-color: #45a049;
+    }
+
+    /* Animation Styles */
+    @keyframes fade-in {
+      0% { opacity: 0; }
+      100% { opacity: 1; }
+    }
+
+    .fade-in {
+      animation: fade-in 0.6s ease-in-out;
+    }
+
+    @keyframes slide-up {
+      0% {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .slide-up {
+      animation: slide-up 0.6s ease-in-out;
+    }
+
+    /* Button Styles */
+    .action-button {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 16px;
+      margin-top: 10px;
+      cursor: pointer;
+      transition: background-color 0.3s ease-in-out;
+    }
+
+    .action-button:hover {
+      background-color: #45a049;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Stock Simulator</h1>
+
+    <div class="header">
+      <div class="balance" id="balance">Current Balance: $2500</div>
+      <button class="action-button" onclick="advanceWeeks(5)">Advance 5 weeks</button>
+    </div>
+
+    <table>
+      <tr>
+        <th>Stock</th>
+        <th>Risk Rating</th>
+        <th>Current Price</th>
+        <th>Invested Amount</th>
+        <th>Buy</th>
+        <th>Sell</th>
+      </tr>
+      <tr id="tesla-row" class="stock-row">
+        <td>Tesla</td>
+        <td>5</td>
+        <td>Loading...</td>
+        <td><input type="number" min="0" value="0" id="tesla-investment"></td>
+        <td><button onclick="buyStock('tesla')">Buy</button></td>
+        <td><button onclick="sellStock('tesla')">Sell</button></td>
+      </tr>
+      <tr id="alphabet-row" class="stock-row">
+        <td>Alphabet</td>
+        <td>4</td>
+        <td>Loading...</td>
+        <td><input type="number" min="0" value="0" id="alphabet-investment"></td>
+        <td><button onclick="buyStock('alphabet')">Buy</button></td>
+        <td><button onclick="sellStock('alphabet')">Sell</button></td>
+      </tr>
+      <tr id="apple-row" class="stock-row">
+        <td>Apple</td>
+        <td>3</td>
+        <td>Loading...</td>
+        <td><input type="number" min="0" value="0" id="apple-investment"></td>
+        <td><button onclick="buyStock('apple')">Buy</button></td>
+        <td><button onclick="sellStock('apple')">Sell</button></td>
+      </tr>
+      <tr id="microsoft-row" class="stock-row">
+        <td>Microsoft</td>
+        <td>2</td>
+        <td>Loading...</td>
+        <td><input type="number" min="0" value="0" id="microsoft-investment"></td>
+        <td><button onclick="buyStock('microsoft')">Buy</button></td>
+        <td><button onclick="sellStock('microsoft')">Sell</button></td>
+      </tr>
+      <tr id="amazon-row" class="stock-row">
+        <td>Amazon</td>
+        <td>1</td>
+        <td>Loading...</td>
+        <td><input type="number" min="0" value="0" id="amazon-investment"></td>
+        <td><button onclick="buyStock('amazon')">Buy</button></td>
+        <td><button onclick="sellStock('amazon')">Sell</button></td>
+      </tr>
+    </table>
+  </div>
+
+  <script>
+    const stocks = [
+      { symbol: 'tesla', riskRating: 5 },
+      { symbol: 'alphabet', riskRating: 4 },
+      { symbol: 'apple', riskRating: 3 },
+      { symbol: 'microsoft', riskRating: 2 },
+      { symbol: 'amazon', riskRating: 1 }
+    ];
+
+    let balance = 2500;
+    const prices = {};
+
+    function getRandomPrice() {
+      return Math.floor(Math.random() * 1000) + 1;
+    }
+
+    function updateStockPrices() {
+      for (const stock of stocks) {
+        const symbol = stock.symbol;
+        const price = getRandomPrice();
+        prices[symbol] = price;
+        document.getElementById(`${symbol}-row`).cells[2].textContent = price.toFixed(2);
+      }
+    }
+
+
+
+function simulatePriceChange(stock) {
+      const { symbol, riskRating } = stock;
+      const currentPrice = prices[symbol];
+      let priceChange = 0;
+
+      if (riskRating === 1) {
+        priceChange = 37;
+      } else if (riskRating === 2) {
+        priceChange = 25;
+      } else if (riskRating >= 3 && riskRating <= 5) {
+        priceChange = Math.random() < 0.5 ? Math.random() * currentPrice * 0.2 : -Math.random() * currentPrice * 0.2;
+      }
+
+      const newPrice = currentPrice + priceChange;
+      prices[symbol] = newPrice;
+      document.getElementById(`${symbol}-row`).cells[2].textContent = newPrice.toFixed(2);
+    }
+
+    function advanceWeeks(numWeeks) {
+      for (let i = 0; i < numWeeks; i++) {
+        for (const stock of stocks) {
+          simulatePriceChange(stock);
+        }
+      }
+
+      updateBalance();
+    }
+
+    function buyStock(symbol) {
+      const investmentInput = document.getElementById(`${symbol}-investment`);
+      const investedAmount = parseFloat(investmentInput.value);
+      if (isNaN(investedAmount) || investedAmount <= 0) {
+        alert('Invalid invested amount. Please enter a positive number.');
+        return;
+      }
+
+      const currentPrice = prices[symbol];
+      const buyingAmount = currentPrice * investedAmount;
+      if (balance < buyingAmount) {
+        alert('Insufficient balance. You do not have enough funds to make this purchase.');
+        return;
+      }
+
+      const message = `You bought ${symbol} stocks for $${buyingAmount.toFixed(2)}.`;
+      alert(message);
+
+      balance -= buyingAmount;
+      investmentInput.value = 0;
+      updateBalance();
+    }
+
+    function sellStock(symbol) {
+      const investmentInput = document.getElementById(`${symbol}-investment`);
+      const investedAmount = parseFloat(investmentInput.value);
+      if (isNaN(investedAmount) || investedAmount <= 0) {
+        alert('Invalid invested amount. Please enter a positive number.');
+        return;
+      }
+
+      const currentPrice = prices[symbol];
+      const sellingAmount = currentPrice * investedAmount;
+      const message = `You sold ${symbol} stocks for $${sellingAmount.toFixed(2)}.`;
+      alert(message);
+
+      balance += sellingAmount;
+      investmentInput.value = 0;
+      updateBalance();
+    }
+
+    function updateBalance() {
+      const balanceElement = document.getElementById('balance');
+      balanceElement.textContent = `Current Balance: $${balance.toFixed(2)}`;
+    }
+
+    function initialize() {
+      updateStockPrices();
+      updateBalance();
+    }
+
+    initialize();
+  </script>
+</body>
+</html>
